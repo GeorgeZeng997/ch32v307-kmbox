@@ -54,6 +54,7 @@ volatile uint8_t  USBHS_HidProtocol[ 2 ];
 /* Endpoint Buffer */
 __attribute__ ((aligned(4))) uint8_t USBHS_EP0_Buf[ DEF_USBD_UEP0_SIZE ];        //ep0(64)
 __attribute__ ((aligned(4))) uint8_t USBHS_EP1_TX_Buf[ DEF_USB_EP1_HS_SIZE ];    //ep1_in(64)
+__attribute__ ((aligned(4))) uint8_t USBHS_EP2_TX_Buf[ DEF_USB_EP2_HS_SIZE ];    //ep2_in(64)
 
 /* USB IN Endpoint Busy Flag */
 volatile uint8_t  USBHS_Endp_Busy[ DEF_UEP_NUM ];
@@ -144,17 +145,20 @@ void USBHS_RCC_Init( void )
  */
 void USBHS_Device_Endp_Init( void )
 {
-    USBHSD->ENDP_CONFIG = USBHS_UEP0_T_EN | USBHS_UEP0_R_EN | USBHS_UEP1_T_EN;
+    USBHSD->ENDP_CONFIG = USBHS_UEP0_T_EN | USBHS_UEP0_R_EN | USBHS_UEP1_T_EN | USBHS_UEP2_T_EN;
 
     USBHSD->UEP0_MAX_LEN = DEF_USBD_UEP0_SIZE;
     USBHSD->UEP1_MAX_LEN = DEF_USB_EP1_HS_SIZE;
+    USBHSD->UEP2_MAX_LEN = DEF_USB_EP2_HS_SIZE;
 
     USBHSD->UEP0_DMA    = (uint32_t)(uint8_t *)USBHS_EP0_Buf;
     USBHSD->UEP1_TX_DMA = (uint32_t)(uint8_t *)USBHS_EP1_TX_Buf;
+    USBHSD->UEP2_TX_DMA = (uint32_t)(uint8_t *)USBHS_EP2_TX_Buf;
 
     USBHSD->UEP0_TX_CTRL = USBHS_UEP_T_RES_NAK;
     USBHSD->UEP0_RX_CTRL = USBHS_UEP_R_RES_ACK;
     USBHSD->UEP1_TX_CTRL = USBHS_UEP_T_RES_NAK;
+    USBHSD->UEP2_TX_CTRL = USBHS_UEP_T_RES_NAK;
 
     /* Clear endpoint busy states on reset/init */
     for( uint8_t i = 0; i < DEF_UEP_NUM; i++ )
@@ -569,6 +573,11 @@ void USBHS_IRQHandler( void )
                                 pUSBHS_Descr = &MyCfgDescr[ 18 ];
                                 len = 9;
                             }
+                            else if( USBHS_SetupReqIndex == 0x01 )
+                            {
+                                pUSBHS_Descr = &MyCfgDescr[ 43 ];
+                                len = 9;
+                            }
                             else
                             {
                                 errflag = 0xFF;
@@ -578,6 +587,11 @@ void USBHS_IRQHandler( void )
                         /* get usb report descriptor */
                         case USB_DESCR_TYP_REPORT:
                             if( USBHS_SetupReqIndex == 0x00 )
+                            {
+                                pUSBHS_Descr = KeyRepDesc;
+                                len = DEF_USBD_REPORT_DESC_LEN_KB;
+                            }
+                            else if( USBHS_SetupReqIndex == 0x01 )
                             {
                                 pUSBHS_Descr = MouseRepDesc;
                                 len = DEF_USBD_REPORT_DESC_LEN_MS;

@@ -1,8 +1,8 @@
 /********************************** (C) COPYRIGHT *******************************
  * File Name          : usbd_desc.c
  * Author             : WCH / KMBox Net
- * Version            : V1.0.0
- * Description        : Single-Interface 1000Hz 5-Button USB HID Mouse Descriptors.
+ * Version            : V1.1.0
+ * Description        : 1000Hz Composite HID Keyboard + 5-Button Mouse Descriptors.
  *******************************************************************************/
 #include "usbd_desc.h"
 
@@ -27,20 +27,20 @@ uint8_t MyDevDescr[ ] =
     0x01                                                    // bNumConfigurations
 };
 
-/* Configuration Descriptor Set (Single-Interface HID Mouse, 34 bytes = 0x22) */
+/* Configuration Descriptor Set (Interface 0: Keyboard, Interface 1: 5-Button Mouse, 59 bytes = 0x3B) */
 const uint8_t MyCfgDescr[ ] =
 {
     /* Configuration Descriptor */
     0x09,                                                   // bLength
     0x02,                                                   // bDescriptorType (Configuration)
-    0x22, 0x00,                                             // wTotalLength (34 bytes)
-    0x01,                                                   // bNumInterfaces (1: HID Mouse only)
+    0x3B, 0x00,                                             // wTotalLength (59 bytes)
+    0x02,                                                   // bNumInterfaces (2: Keyboard + Mouse)
     0x01,                                                   // bConfigurationValue
     0x00,                                                   // iConfiguration
     0xA0,                                                   // bmAttributes: Bus Powered; Remote Wakeup
     0x32,                                                   // MaxPower: 100mA
 
-    /* Interface Descriptor (Mouse: Interface 0) */
+    /* Interface Descriptor (Keyboard: Interface 0) */
     0x09,                                                   // bLength
     0x04,                                                   // bDescriptorType (Interface)
     0x00,                                                   // bInterfaceNumber (0)
@@ -48,10 +48,38 @@ const uint8_t MyCfgDescr[ ] =
     0x01,                                                   // bNumEndpoints (1)
     0x03,                                                   // bInterfaceClass (HID)
     0x01,                                                   // bInterfaceSubClass (Boot Interface)
+    0x01,                                                   // bInterfaceProtocol (Keyboard)
+    0x00,                                                   // iInterface
+
+    /* HID Descriptor (Keyboard, offset 18) */
+    0x09,                                                   // bLength
+    0x21,                                                   // bDescriptorType (HID)
+    0x11, 0x01,                                             // bcdHID (1.11)
+    0x00,                                                   // bCountryCode
+    0x01,                                                   // bNumDescriptors
+    0x22,                                                   // bDescriptorType (Report)
+    DEF_USBD_REPORT_DESC_LEN_KB, 0x00,                      // wDescriptorLength (62 bytes = 0x3E)
+
+    /* Endpoint Descriptor (Keyboard EP1 IN: 1000Hz Polling) */
+    0x07,                                                   // bLength
+    0x05,                                                   // bDescriptorType (Endpoint)
+    0x81,                                                   // bEndpointAddress: IN Endpoint 1
+    0x03,                                                   // bmAttributes: Interrupt
+    0x08, 0x00,                                             // wMaxPacketSize: 8 bytes
+    0x01,                                                   // bInterval: 1ms (1000Hz)
+
+    /* Interface Descriptor (Mouse: Interface 1) */
+    0x09,                                                   // bLength
+    0x04,                                                   // bDescriptorType (Interface)
+    0x01,                                                   // bInterfaceNumber (1)
+    0x00,                                                   // bAlternateSetting
+    0x01,                                                   // bNumEndpoints (1)
+    0x03,                                                   // bInterfaceClass (HID)
+    0x01,                                                   // bInterfaceSubClass (Boot Interface)
     0x02,                                                   // bInterfaceProtocol (Mouse)
     0x00,                                                   // iInterface
 
-    /* HID Descriptor (Mouse, offset 18) */
+    /* HID Descriptor (Mouse, offset 43) */
     0x09,                                                   // bLength
     0x21,                                                   // bDescriptorType (HID)
     0x11, 0x01,                                             // bcdHID (1.11)
@@ -60,13 +88,49 @@ const uint8_t MyCfgDescr[ ] =
     0x22,                                                   // bDescriptorType (Report)
     DEF_USBD_REPORT_DESC_LEN_MS, 0x00,                      // wDescriptorLength (52 bytes = 0x34)
 
-    /* Endpoint Descriptor (EP1 IN: 1000Hz Polling) */
+    /* Endpoint Descriptor (Mouse EP2 IN: 1000Hz Polling) */
     0x07,                                                   // bLength
     0x05,                                                   // bDescriptorType (Endpoint)
-    0x81,                                                   // bEndpointAddress: IN Endpoint 1
+    0x82,                                                   // bEndpointAddress: IN Endpoint 2
     0x03,                                                   // bmAttributes: Interrupt
     0x08, 0x00,                                             // wMaxPacketSize: 8 bytes
     0x01                                                    // bInterval: 1ms (1000Hz in Full-Speed)
+};
+
+/* Standard 8-Byte Keyboard Report Descriptor (62 bytes = 0x3E) */
+const uint8_t KeyRepDesc[ ] =
+{
+    0x05, 0x01,                                             // Usage Page (Generic Desktop)
+    0x09, 0x06,                                             // Usage (Keyboard)
+    0xA1, 0x01,                                             // Collection (Application)
+    0x05, 0x07,                                             // Usage Page (Key Codes)
+    0x19, 0xE0,                                             // Usage Minimum (224: Left Control)
+    0x29, 0xE7,                                             // Usage Maximum (231: Right GUI)
+    0x15, 0x00,                                             // Logical Minimum (0)
+    0x25, 0x01,                                             // Logical Maximum (1)
+    0x75, 0x01,                                             // Report Size (1)
+    0x95, 0x08,                                             // Report Count (8)
+    0x81, 0x02,                                             // Input (Data,Variable,Absolute)
+    0x95, 0x01,                                             // Report Count (1)
+    0x75, 0x08,                                             // Report Size (8)
+    0x81, 0x01,                                             // Input (Constant) - Reserved byte
+    0x95, 0x03,                                             // Report Count (3)
+    0x75, 0x01,                                             // Report Size (1)
+    0x05, 0x08,                                             // Usage Page (LEDs)
+    0x19, 0x01,                                             // Usage Minimum (1)
+    0x29, 0x03,                                             // Usage Maximum (3)
+    0x91, 0x02,                                             // Output (Data,Variable,Absolute)
+    0x95, 0x05,                                             // Report Count (5)
+    0x75, 0x01,                                             // Report Size (1)
+    0x91, 0x01,                                             // Output (Constant,Array,Absolute)
+    0x95, 0x06,                                             // Report Count (6)
+    0x75, 0x08,                                             // Report Size (8)
+    0x26, 0xFF, 0x00,                                       // Logical Maximum (255)
+    0x05, 0x07,                                             // Usage Page (Key Codes)
+    0x19, 0x00,                                             // Usage Minimum (0)
+    0x29, 0x91,                                             // Usage Maximum (145)
+    0x81, 0x00,                                             // Input (Data,Array,Absolute)
+    0xC0                                                    // End Collection
 };
 
 /* 5-Button + 8-bit X/Y/Wheel Mouse Report Descriptor (52 bytes = 0x34) */

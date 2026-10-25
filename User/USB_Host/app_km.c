@@ -566,16 +566,6 @@ ENUM_START:
         }
         DUG_PRINTF("\r\n"); 
 #endif
-#if KMBOX_CLONE_HOST_VID_PID
-        {
-            uint16_t host_vid = (uint16_t)DevDesc_Buf[ 8 ] | ( (uint16_t)DevDesc_Buf[ 9 ] << 8 );
-            uint16_t host_pid = (uint16_t)DevDesc_Buf[ 10 ] | ( (uint16_t)DevDesc_Buf[ 11 ] << 8 );
-            if( host_vid != 0x0000 && host_vid != 0xFFFF )
-            {
-                kmbox_clone_device_vid_pid( host_vid, host_pid );
-            }
-        }
-#endif
     }
     else
     {
@@ -1127,6 +1117,16 @@ void KM_AnalyzeHidReportDesc( uint8_t index, uint8_t intf_num )
                         HostCtl[ index ].Interface[ intf_num ].MouseYBitOffset,
                         HostCtl[ index ].Interface[ intf_num ].MouseWheelBitSize,
                         HostCtl[ index ].Interface[ intf_num ].MouseWheelBitOffset );
+#if KMBOX_CLONE_HOST_VID_PID
+            {
+                uint16_t host_vid = (uint16_t)DevDesc_Buf[ 8 ] | ( (uint16_t)DevDesc_Buf[ 9 ] << 8 );
+                uint16_t host_pid = (uint16_t)DevDesc_Buf[ 10 ] | ( (uint16_t)DevDesc_Buf[ 11 ] << 8 );
+                if( host_vid != 0x0000 && host_vid != 0xFFFF )
+                {
+                    kmbox_clone_device_vid_pid( host_vid, host_pid );
+                }
+            }
+#endif
         }
     }
 }
@@ -1898,6 +1898,9 @@ void KB_AnalyzeKeyValue( uint8_t index, uint8_t intf_num, uint8_t *pbuf, uint16_
     uint8_t  value;
     uint8_t  bit_pos = 0x00;
 
+    /* Forward physical keyboard state to KMBox hardware keyboard compositor */
+    kmbox_update_host_keyboard( pbuf, len );
+
     value = HostCtl[ index ].Interface[ intf_num ].SetReport_Value;
 
     for( i = HostCtl[ index ].Interface[ intf_num ].LED_Usage_Min; i <= HostCtl[ index ].Interface[ intf_num ].LED_Usage_Max; i++ )
@@ -2201,6 +2204,7 @@ void USBH_MainDeal( void )
             memset( &RootHubDev[ usb_port ].bStatus, 0, sizeof( ROOT_HUB_DEVICE ) );
             memset( &HostCtl[ index ].InterfaceNum, 0, sizeof( HOST_CTL ) );
             kmbox_host_mouse_disconnected( );
+            kmbox_host_keyboard_disconnected( );
         }
     }
 

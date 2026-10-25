@@ -1,8 +1,8 @@
 /********************************** (C) COPYRIGHT *******************************
  * File Name          : usbd_desc.h
  * Author             : WCH / KMBox Net
- * Version            : V1.0.0
- * Description        : USB descriptors for single-interface 1000Hz 5-button HID Mouse.
+ * Version            : V1.1.0
+ * Description        : USB descriptors for 1000Hz Composite HID Keyboard + 5-Button Mouse.
  *******************************************************************************/
 #ifndef __USBD_DESC_H
 #define __USBD_DESC_H
@@ -13,7 +13,7 @@
 /* File Version */
 #define DEF_FILE_VERSION              0x01
 
-/* Default USB Device Info (Logitech USB Optical Mouse, dynamically clonable) */
+/* Default USB Device Info (Logitech, dynamically clonable from physical mouse) */
 #define DEF_USB_VID                   KMBOX_DEFAULT_VID
 #define DEF_USB_PID                   KMBOX_DEFAULT_PID
 
@@ -27,13 +27,16 @@
 /* FS */
 #define DEF_USBD_FS_PACK_SIZE         64     /* usb fs device max bulk/int pack size */
 
-/* Endpoint 1 Size */
+/* Endpoint 1 (Keyboard IN) & Endpoint 2 (Mouse IN) Size */
 #define DEF_USB_EP1_HS_SIZE           DEF_USBD_HS_PACK_SIZE
+#define DEF_USB_EP2_HS_SIZE           DEF_USBD_HS_PACK_SIZE
 #define DEF_USB_EP1_FS_SIZE           DEF_USBD_FS_PACK_SIZE
+#define DEF_USB_EP2_FS_SIZE           DEF_USBD_FS_PACK_SIZE
 
 /* USB Device Descriptor Length */
 #define DEF_USBD_DEVICE_DESC_LEN      ( (uint16_t)MyDevDescr[ 0 ] )
 #define DEF_USBD_CONFIG_DESC_LEN      ( (uint16_t)MyCfgDescr[ 2 ] + ( (uint16_t)MyCfgDescr[ 3 ] << 8 ) )
+#define DEF_USBD_REPORT_DESC_LEN_KB   0x3E
 #define DEF_USBD_REPORT_DESC_LEN_MS   0x34
 #define DEF_USBD_LANG_DESC_LEN        ( (uint16_t)MyLangDescr[ 0 ] )
 #define DEF_USBD_MANU_DESC_LEN        ( (uint16_t)MyManuInfo[ 0 ] )
@@ -47,6 +50,7 @@
 /* Descriptor Declaration (MyDevDescr is mutable for dynamic VID/PID cloning) */
 extern uint8_t       MyDevDescr[ ];
 extern const uint8_t MyCfgDescr[ ];
+extern const uint8_t KeyRepDesc[ ];
 extern const uint8_t MouseRepDesc[ ];
 extern const uint8_t MyQuaDesc[ ];
 extern const uint8_t MyLangDescr[ ];
