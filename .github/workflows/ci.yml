@@ -1,0 +1,44 @@
+name: Build CH32V307 KMBox Net Firmware
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "master", "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Ninja and CMake
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build curl
+
+      - name: Install xPack RISC-V Embedded GCC
+        run: |
+          TOOLCHAIN_VER="13.2.0-2"
+          ARCHIVE="xpack-riscv-none-elf-gcc-${TOOLCHAIN_VER}-linux-x64.tar.gz"
+          curl -fL "https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v${TOOLCHAIN_VER}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
+          mkdir -p "$HOME/opt"
+          tar -xzf "/tmp/${ARCHIVE}" -C "$HOME/opt"
+          echo "$HOME/opt/xpack-riscv-none-elf-gcc-${TOOLCHAIN_VER}/bin" >> $GITHUB_PATH
+
+      - name: Configure and Build Firmware
+        run: |
+          cmake -B build -G Ninja
+          cmake --build build --parallel
+
+      - name: Upload Firmware Artifacts (.hex / .bin / .elf)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ch32v307-kmbox-firmware
+          path: |
+            build/ch32v307_kmbox.hex
+            build/ch32v307_kmbox.bin
+            build/ch32v307_kmbox.elf
+            build/ch32v307_kmbox.map
