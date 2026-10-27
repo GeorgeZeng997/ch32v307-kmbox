@@ -20,9 +20,9 @@ endif()
 
 project(ch32v307_kmbox C ASM)
 
-# Detect GCC version to select rv32imac_zicsr (GCC >= 12) vs rv32imac (GCC <= 11)
+# Detect GCC version to select rv32imac_zicsr_zifencei (GCC >= 12) vs rv32imac (GCC <= 11)
 if(CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "12.0")
-    set(ARCH_FLAGS "-march=rv32imac_zicsr -mabi=ilp32")
+    set(ARCH_FLAGS "-march=rv32imac_zicsr_zifencei -mabi=ilp32")
 else()
     set(ARCH_FLAGS "-march=rv32imac -mabi=ilp32")
 endif()

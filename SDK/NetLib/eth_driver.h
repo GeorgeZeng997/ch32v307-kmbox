@@ -17,7 +17,7 @@
 #endif 
 
 #include "debug.h"
-#include "wchnet.h"
+#include "WCHNET.h"
 
  /* 1: interrupt 0: polling in RMII or RGMII mode */
 #define LINK_STAT_ACQUISITION_METHOD            0
