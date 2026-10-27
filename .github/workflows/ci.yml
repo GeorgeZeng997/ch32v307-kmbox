@@ -30,8 +30,11 @@ jobs:
 
       - name: Configure and Build Firmware
         run: |
-          cmake -B build -G Ninja
-          cmake --build build --parallel
+          set -o pipefail
+          # Strip vendor-specific .riscv.attributes (_xw2p0) from WCH prebuilt static library
+          riscv-none-elf-objcopy --remove-section=.riscv.attributes SDK/NetLib/libwchnet.a
+          cmake -B build -G Ninja 2>&1 | tee build.log || { grep -E "error:|Error|undefined" build.log | head -n 10 | while read -r line; do echo "::error::$line"; done; exit 1; }
+          cmake --build build --parallel 2>&1 | tee -a build.log || { grep -E "error:|Error|undefined|ld:" build.log | head -n 15 | while read -r line; do echo "::error::$line"; done; exit 1; }
 
       - name: Upload Firmware Artifacts (.hex / .bin / .elf)
         uses: actions/upload-artifact@v4
