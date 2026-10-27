@@ -19,7 +19,7 @@
 /******************************************************************************/
 #define UDP_RECE_BUF_LEN            1472
 
-static u8  MACAddr[ 6 ];
+u8         MACAddr[ 6 ];
 static u8  IPAddr[ 4 ]   = { KMBOX_IP_ADDR0, KMBOX_IP_ADDR1, KMBOX_IP_ADDR2, KMBOX_IP_ADDR3 };
 static u8  GWIPAddr[ 4 ] = { KMBOX_GW_ADDR0, KMBOX_GW_ADDR1, KMBOX_GW_ADDR2, KMBOX_GW_ADDR3 };
 static u8  IPMask[ 4 ]   = { KMBOX_MASK0,    KMBOX_MASK1,    KMBOX_MASK2,    KMBOX_MASK3    };

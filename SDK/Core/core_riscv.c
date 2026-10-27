@@ -31,6 +31,7 @@
 #endif
 
 
+#if defined(__riscv_flen)
 /*********************************************************************
  * @fn      __get_FFLAGS
  *
@@ -117,6 +118,7 @@ void __set_FCSR(uint32_t value)
 {
   __ASM volatile ("csrw fcsr, %0" : : "r" (value) );
 }
+#endif
 
 /*********************************************************************
  * @fn      __get_MSTATUS
