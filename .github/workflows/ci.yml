@@ -19,21 +19,25 @@ jobs:
           TOOLCHAIN_VER="13.2.0-2"
           ARCHIVE="xpack-riscv-none-elf-gcc-${TOOLCHAIN_VER}-linux-x64.tar.gz"
           curl -fL "https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v${TOOLCHAIN_VER}/${ARCHIVE}" -o "/tmp/${ARCHIVE}"
-          mkdir -p "$HOME/opt"
-          tar -xzf "/tmp/${ARCHIVE}" -C "$HOME/opt"
-          echo "$HOME/opt/xpack-riscv-none-elf-gcc-${TOOLCHAIN_VER}/bin" >> $GITHUB_PATH
+          mkdir -p "$HOME/opt/riscv-gcc"
+          tar -xzf "/tmp/${ARCHIVE}" -C "$HOME/opt/riscv-gcc" --strip-components=1
+          echo "$HOME/opt/riscv-gcc/bin" >> $GITHUB_PATH
 
       - name: Configure and Build Firmware
         run: |
-          {
-            riscv-none-elf-objcopy --remove-section=.riscv.attributes SDK/NetLib/libwchnet.a
-            cmake -B build
-            cmake --build build --parallel
-          } > build.log 2>&1 || {
-            tail -n 25 build.log | while IFS= read -r line; do echo "::error::$line"; done
-            exit 1
-          }
+          set +e
+          riscv-none-elf-objcopy --remove-section=.riscv.attributes SDK/NetLib/libwchnet.a > build.log 2>&1
+          cmake -B build >> build.log 2>&1
+          rc=$?
+          if [ $rc -eq 0 ]; then
+            cmake --build build --parallel >> build.log 2>&1
+            rc=$?
+          fi
           cat build.log
+          if [ $rc -ne 0 ]; then
+            tail -n 20 build.log | while IFS= read -r line; do echo "::error::$line"; done
+            exit $rc
+          fi
 
       - name: Upload Firmware Artifacts (.hex / .bin / .elf)
         uses: actions/upload-artifact@v4
