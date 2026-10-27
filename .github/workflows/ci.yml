@@ -14,11 +14,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Ninja and CMake
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build curl
-
       - name: Install xPack RISC-V Embedded GCC
         run: |
           TOOLCHAIN_VER="13.2.0-2"
